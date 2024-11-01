@@ -13,14 +13,14 @@ An application to be used by NHSBSA employees to Create, Read, Update and Update
 - [python](https://www.python.org)
 
 **Mac**
-- setup a virtual environment: `python3 -m venv env`
-- start the virtual environment: `source .venv/scripts/activate`
+- setup a virtual environment: `python3 -m venv .venv`
+- start the virtual environment: `source .venv/bin/activate`
 - install django: `pip install django`
 - run the web app: `python manage.py runserver`
 
 **Windows**
 - create the virtual environment: `py -3 -m venv .venv`
-- start the virtual environment: `.venv\scripts\activate`
+- start the virtual environment: `.venv\bin\activate`
 - install django: `pip install django`
 - install dependencies: `pip install -r requirements.txt`
 - run the web app: `python3 manage.py runserver`
