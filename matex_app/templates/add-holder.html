@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1 class="text-center">Add Certificate Holder</h1>
+<br/>
+<form method="POST" action="{% url 'add-holder' %}">
+    {% csrf_token %}
+
+    {{ form.as_p }}
+
+    <br/>
+    <button type="submit" class="btn btn-primary">Submit</button>
+    <a href="{% url 'certificate-holders' %}" class="btn btn-secondary">Back</a>
+
+</form>
+{% endblock content %}

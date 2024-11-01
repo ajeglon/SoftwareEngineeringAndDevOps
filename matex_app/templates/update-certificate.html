@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<div class="col-md-6 offset-md-3">
+    <h1>Update Certificate Holder</h1>
+    <br/>
+
+    <form method="POST">
+        {% csrf_token %}
+
+        {{ form.as_p }}
+
+        <br/>
+        <button type="submit" class="btn btn-secondary">Update Certificate</button>
+        <a href="{% url 'certificates' %}" class="btn btn-secondary">Back</a>
+    </form>
+
+
+</div>
+
+{% endblock %}

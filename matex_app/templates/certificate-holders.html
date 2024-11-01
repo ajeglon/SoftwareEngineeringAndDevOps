@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1 class="text-center">Certificate Holders</h1>
+<br/>
+<div class="d-grid gap-2 col-6 mx-auto">
+    <a class="btn btn-primary btn-lg" href="{% url 'add-holder' %}" role="button">Add new certificate holder</a><br/>
+</div>
+<br/>
+<table class="table table-striped table-hover table-bordered">
+    <thead class="table-dark">
+    <tr>
+        <th scope="col">Holder ID</th>
+        <th scope="col">NHS Number</th>
+        <th scope="col">Name</th>
+        <th scope="col">Email</th>
+        <th scope="col">Date of Birth</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% if cert_holders %}
+    {% for holder in cert_holders %}
+    <tr>
+        <td><a href="{% url 'holder-info' holder.id %}">{{ holder.id }}</a></td>
+        <td>{{ holder.nhs_number }}</td>
+        <td>{{ holder.first_name }} {{ holder.last_name }}</td>
+        <td>{{ holder.email }}</td>
+        <td>{{ holder.date_of_birth }}</td>
+    </tr>
+    {% endfor %}
+    {% endif %}
+    </tbody>
+</table>
+{% endblock content %}

@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1 class="text-center">Certificates</h1>
+
+<br/>
+<div class="d-grid gap-2 col-6 mx-auto">
+    <a class="btn btn-primary btn-lg" href="{% url 'add-certificate' %}" role="button">Add new certificate</a><br/>
+</div>
+<br/>
+<table class="table table-striped table-hover table-bordered">
+    <thead class="table-dark">
+    <tr>
+        <th scope="col">Certificate Number</th>
+        <th scope="col">Certificate Holder</th>
+        <th scope="col">Start Date</th>
+        <th scope="col">Expiration Date</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% if certs %}
+    {% for cert in certs %}
+    <tr>
+        <td><a href="{% url 'certificate-info' cert.certificate_number %}">{{ cert.certificate_number }}</a></td>
+        <td>{{ cert.certificate_holder }}</td>
+        <td>{{ cert.certificate_start_date }}</td>
+        <td>{{ cert.certificate_expiration_date }}</td>
+    </tr>
+    {% endfor %}
+    {% endif %}
+    </tbody>
+</table>
+
+{% endblock content %}

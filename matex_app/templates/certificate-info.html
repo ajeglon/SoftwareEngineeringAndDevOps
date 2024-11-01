@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<div class="card">
+    <div class="card-header"><strong>
+        Certificate Number: {{ certificate_record.certificate_number }}
+       </strong>
+    </div>
+    <div class="card-body">
+
+        <p class="card-text">
+            <strong>Certificate Holder: </strong> {{ certificate_record.certificate_holder }}
+        </p>
+        <p class="card-text">
+            <strong>Start Date: </strong>{{ certificate_record.certificate_start_date }}
+        </p>
+        <p class="card-text">
+            <strong>End Date: </strong>{{ certificate_record.certificate_expiration_date }}
+        </p>
+        <p class="card-text">
+            <strong>Active: </strong>{{ certificate_record.certificate_active }}
+        </p>
+    </div>
+</div>
+
+<a href="{% url 'certificates' %}" class="btn btn-secondary">Back</a>
+
+<a href="{% url 'update-certificate' certificate_record.certificate_number %}" class="btn btn-secondary">Update Certificate</a>
+
+<a href="{% url 'delete-certificate' certificate_record.certificate_number %}" class="btn btn-danger">Delete</a>
+
+{% endblock %}

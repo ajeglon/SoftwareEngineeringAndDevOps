@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<div class="card">
+    <div class="card-header"><strong>
+        Holder ID: {{ holder_record.id }}
+       </strong>
+    </div>
+    <div class="card-body">
+
+        <p class="card-text">
+            <strong>NHS Number: </strong> {{ holder_record.nhs_number }}
+        </p>
+        <p class="card-text">
+            <strong>First Name: </strong>{{ holder_record.first_name }}
+        </p>
+        <p class="card-text">
+            <strong>Last Name: </strong>{{ holder_record.last_name }}
+        </p>
+        <p class="card-text">
+            <strong>Email: </strong>{{ holder_record.email }}
+        </p>
+
+        <p class="card-text">
+            <strong>Date of Birth: </strong>{{ holder_record.date_of_birth }}
+        </p>
+    </div>
+</div>
+
+<br/><br/>
+
+<a href="{% url 'certificate-holders' %}" class="btn btn-secondary">Back</a>
+
+<a href="{% url 'update-holder-info' holder_record.id %}" class="btn btn-secondary">Update Holder</a>
+
+<a href="{% url 'delete-holder-info' holder_record.id %}" class="btn btn-danger">Delete</a>
+
+{% endblock %}
