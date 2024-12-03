@@ -2,6 +2,8 @@ from django.test import TestCase
 from django.core.exceptions import ValidationError
 from .models import CertificateHolder
 
+
+# Tests for Certificate Holders
 class CertificateHolderTest(TestCase):
 
     def test_nhs_number_valid(self):
@@ -36,6 +38,12 @@ class CertificateHolderTest(TestCase):
         with self.assertRaises(ValidationError):
             certHolder.clean()
 
+    def test_nhs_number_empty(self):
+        # Test an NHS number that is empty
+        certHolder = CertificateHolder(nhs_number="", first_name="firstname", last_name="lastname", email="email@email.co.uk", date_of_birth="1990-01-01")
+        with self.assertRaises(ValidationError):
+            certHolder.clean()
+
     def test_first_name_valid(self):
         # Test a valid First Name
         certHolder = CertificateHolder(nhs_number=1234567890, first_name="Anthony", last_name="lastname", email="email@email.co.uk", date_of_birth="1990-01-01")
@@ -45,8 +53,14 @@ class CertificateHolderTest(TestCase):
             self.fail("Valid First Name raised ValidationError")
 
     def test_first_name_invalid(self):
-        # Test a valid First Name
+        # Test an invalid First Name
         certHolder = CertificateHolder(nhs_number=1234567890, first_name="123456", last_name="lastname", email="email@email.co.uk", date_of_birth="1990-01-01")
+        with self.assertRaises(ValidationError):
+            certHolder.clean()
+
+    def test_first_name_empty(self):
+        # Test an empty First Name
+        certHolder = CertificateHolder(nhs_number=1234567890, first_name="", last_name="lastname", email="email@email.co.uk", date_of_birth="1990-01-01")
         with self.assertRaises(ValidationError):
             certHolder.clean()
 
@@ -59,7 +73,34 @@ class CertificateHolderTest(TestCase):
             self.fail("Valid First Name raised ValidationError")
 
     def test_last_name_invalid(self):
-        # Test a valid Last Name
+        # Test an invalid Last Name
         certHolder = CertificateHolder(nhs_number=1234567890, first_name="firstname", last_name="123456", email="email@email.co.uk", date_of_birth="1990-01-01")
         with self.assertRaises(ValidationError):
             certHolder.clean()
+
+    def test_last_name_empty(self):
+        # Test an empty Last Name
+        certHolder = CertificateHolder(nhs_number=1234567890, first_name="firstname", last_name="", email="email@email.co.uk", date_of_birth="1990-01-01")
+        with self.assertRaises(ValidationError):
+            certHolder.clean()
+
+    def test_email_valid(self):
+        # Test a valid email
+        certHolder = CertificateHolder(nhs_number=1234567890, first_name="firstname", last_name="lastname", email="testemaill@email.co.uk", date_of_birth="1990-01-01")
+        try:
+            certHolder.clean()
+        except ValidationError:
+            self.fail("Valid email raised ValidationError")
+
+    def test_email_invalid(self):
+        # Test an invalid email
+        certHolder = CertificateHolder(nhs_number=1234567890, first_name="firstname", last_name="lastname", email="testemaill", date_of_birth="1990-01-01")
+        with self.assertRaises(ValidationError):
+            certHolder.clean()
+
+    def test_email_empty(self):
+        # Test an empty email
+        certHolder = CertificateHolder(nhs_number=1234567890, first_name="firstname", last_name="lastname", email="", date_of_birth="1990-01-01")
+        with self.assertRaises(ValidationError):
+            certHolder.clean()
+
