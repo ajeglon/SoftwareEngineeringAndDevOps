@@ -45,13 +45,21 @@ class CertificateHolder(models.Model):
         return str(self.nhs_number) + " - " + f'{self.first_name} {self.last_name}'
 
     def clean(self):
+        if not self.nhs_number:
+            raise ValidationError("NHS number cannot be empty.")
         if not (1000000000 <= int(self.nhs_number) <= 9999999999):
             raise ValidationError({'nhs_number': 'NHS number must be a 10-digit number between 1000000000 and 9999999999.'})
         if not re.fullmatch(r'[A-Za-z]+', self.first_name):
             raise ValidationError("First name can only contain letters.")
         if not re.fullmatch(r'[A-Za-z]+', self.last_name):
             raise ValidationError("First name can only contain letters.")
-
+        validator = EmailValidator(message="Invalid email address format.")
+        try:
+            validator(self.email)  # Check if the email is valid
+        except ValidationError:
+            raise ValidationError({"email": "The email field must contain a valid email address."})
+        if not self.email:
+            raise ValidationError("Email cannot be empty.")
 
 
 class CertificateInfo(models.Model):
