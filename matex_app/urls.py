@@ -14,5 +14,6 @@ urlpatterns = [
     path('certificate-info/<int:pk>/', views.certificate_info, name='certificate-info'),
     path('add-certificate', views.add_certificate, name='add-certificate'),
     path('delete-certificate/<int:pk>/', views.delete_certificate, name='delete-certificate'),
-    path('update-certificate/<int:pk>/', views.update_certificate, name='update-certificate')
+    path('update-certificate/<int:pk>/', views.update_certificate, name='update-certificate'),
+    path('admin/', views.admin, name='admin'),
 ]

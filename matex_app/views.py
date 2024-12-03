@@ -18,7 +18,7 @@ def index(request):
             messages.success(request, 'Succesfully logged in')
             return redirect('index')
         else:
-            messages.success(request, 'There was an error loggin in, please try again')
+            messages.success(request, 'There was an error login, please try again')
             return redirect('index')
     else:
         return render(request, 'index.html', {})
@@ -163,3 +163,11 @@ def update_certificate(request, pk):
     else:
         messages.success(request, "Please login to update")
         return redirect('certificates')
+
+
+def admin(request):
+    if request.user.is_superuser:
+        return render(request, 'admin')
+    else:
+        messages.success(request, 'Admin Login Required')
+        return redirect('index')

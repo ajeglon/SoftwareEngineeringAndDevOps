@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: your_django_app_name
+    name: matex_application
     buildCommand: "./build.sh"
     env: python
     startCommand: "gunicorn matex_application.wsgi:application"
