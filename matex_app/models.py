@@ -2,6 +2,7 @@ from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator, MaxValueValidator, RegexValidator, EmailValidator
 from django.db import models
 from datetime import datetime, timedelta
+import re
 
 
 # Create your models here.
@@ -34,8 +35,7 @@ class CertificateHolder(models.Model):
     )
     email = models.EmailField(
         validators=[EmailValidator()],
-        unique=True,
-        help_text="Enter a valid email address."
+        unique=True
     )
     date_of_birth = models.DateField(
         help_text="Enter the date of birth (YYYY-MM-DD)."
@@ -45,9 +45,13 @@ class CertificateHolder(models.Model):
         return str(self.nhs_number) + " - " + f'{self.first_name} {self.last_name}'
 
     def clean(self):
-        # Custom validation for the nhs_number
         if not (1000000000 <= int(self.nhs_number) <= 9999999999):
             raise ValidationError({'nhs_number': 'NHS number must be a 10-digit number between 1000000000 and 9999999999.'})
+        if not re.fullmatch(r'[A-Za-z]+', self.first_name):
+            raise ValidationError("First name can only contain letters.")
+        if not re.fullmatch(r'[A-Za-z]+', self.last_name):
+            raise ValidationError("First name can only contain letters.")
+
 
 
 class CertificateInfo(models.Model):
