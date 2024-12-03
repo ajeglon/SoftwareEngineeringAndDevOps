@@ -104,3 +104,29 @@ class CertificateHolderTest(TestCase):
         with self.assertRaises(ValidationError):
             certHolder.clean()
 
+    def test_date_of_birth_valid(self):
+        # Test a valid email
+        certHolder = CertificateHolder(nhs_number=1234567890, first_name="firstname", last_name="lastname", email="testemaill@email.co.uk", date_of_birth="1990-01-01")
+        try:
+            certHolder.clean()
+        except ValidationError:
+            self.fail("Valid Date of birth raised ValidationError")
+
+    def test_date_of_birth_future(self):
+        # Test an invalid email
+        certHolder = CertificateHolder(nhs_number=1234567890, first_name="firstname", last_name="lastname", email="testemaill", date_of_birth="2099-01-01")
+        with self.assertRaises(ValidationError):
+            certHolder.clean()
+
+    def test_date_of_birth_invalid(self):
+        # Test an invalid email
+        certHolder = CertificateHolder(nhs_number=1234567890, first_name="firstname", last_name="lastname", email="testemaill", date_of_birth="19990101")
+        with self.assertRaises(ValidationError):
+            certHolder.clean()
+
+    def test_date_of_birth_empty(self):
+        # Test an empty email
+        certHolder = CertificateHolder(nhs_number=1234567890, first_name="firstname", last_name="lastname", email="email@email.co.uk", date_of_birth="")
+        with self.assertRaises(ValidationError):
+            certHolder.clean()
+

@@ -1,7 +1,7 @@
 from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator, MaxValueValidator, RegexValidator, EmailValidator
 from django.db import models
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 import re
 
 
@@ -49,17 +49,33 @@ class CertificateHolder(models.Model):
             raise ValidationError("NHS number cannot be empty.")
         if not (1000000000 <= int(self.nhs_number) <= 9999999999):
             raise ValidationError({'nhs_number': 'NHS number must be a 10-digit number between 1000000000 and 9999999999.'})
+        if not self.first_name:
+            raise ValidationError("First name cannot be empty.")
         if not re.fullmatch(r'[A-Za-z]+', self.first_name):
             raise ValidationError("First name can only contain letters.")
+        if not self.last_name:
+            raise ValidationError("Last name cannot be empty.")
         if not re.fullmatch(r'[A-Za-z]+', self.last_name):
-            raise ValidationError("First name can only contain letters.")
+            raise ValidationError("Last name can only contain letters.")
+        if not self.email:
+            raise ValidationError("Email cannot be empty.")
         validator = EmailValidator(message="Invalid email address format.")
         try:
             validator(self.email)  # Check if the email is valid
         except ValidationError:
             raise ValidationError({"email": "The email field must contain a valid email address."})
-        if not self.email:
-            raise ValidationError("Email cannot be empty.")
+        if not self.date_of_birth:
+            raise ValidationError("Date of Birth cannot be empty.")
+        if isinstance(self.date_of_birth, str):
+            try:
+                self.date_of_birth = datetime.strptime(self.date_of_birth, "%Y-%m-%d").date()
+            except ValueError:
+                raise ValidationError(
+                    {"date_of_birth": "The date of birth must be a valid date in the format YYYY-MM-DD."})
+        if self.date_of_birth:
+            if not isinstance(self.date_of_birth, date):
+                raise ValidationError({"date_of_birth": "The date of birth must be a valid date."})
+
 
 
 class CertificateInfo(models.Model):
