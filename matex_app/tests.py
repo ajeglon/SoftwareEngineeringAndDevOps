@@ -396,3 +396,106 @@ class UpdateCertHolderTests(TestCase):
         # Check if the certificate holder's data is unchanged
         self.certificate_holder.refresh_from_db()
         self.assertEqual(self.certificate_holder.first_name, 'John')
+
+# Tests for viewing Certificate-info
+class CertificateInfoViewTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+
+        self.certificate_holder = CertificateHolder.objects.create(
+            nhs_number=1000000001,
+            first_name='John',
+            last_name='Doe',
+            email='john.doe@example.com',
+            date_of_birth='2000-01-01'
+        )
+
+        self.certificate_info = CertificateInfo.objects.create(
+            certificate_holder=self.certificate_holder,
+            certificate_start_date='2023-01-01',
+            certificate_expiration_date='2024-01-01'
+        )
+
+        self.certificate_info_url = reverse('certificate-info', kwargs={'pk': self.certificate_info.certificate_number})
+        self.index_url = reverse('index')
+
+    def test_authenticated_user_can_view_certificate_info(self):
+        self.client.login(username='testuser', password='testpassword')
+
+        # Send GET request to the certificate_info view
+        response = self.client.get(self.certificate_info_url)
+
+        # Verify the response
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'certificate-info.html')
+        self.assertEqual(response.context['certificate_record'], self.certificate_info)
+
+    def test_unauthenticated_user_cannot_view_certificate_info(self):
+        # Send GET request without logging in
+        response = self.client.get(self.certificate_info_url)
+
+        # Check for redirection to the index page
+        self.assertRedirects(response, self.index_url)
+
+        # Check for the 'Please log in to view this page' message
+        messages = list(get_messages(response.wsgi_request))
+        self.assertTrue(any(str(message) == 'Please log in to view this page' for message in messages))
+
+# Tests for Deleting Certificate-info
+class DeleteCertificateTests(TestCase):
+    def setUp(self):
+        # Create test user
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+        # Create superuser
+        self.superuser = User.objects.create_superuser(username='admin', password='adminpassword')
+
+        self.certificate_holder = CertificateHolder.objects.create(
+            nhs_number=1000000001,
+            first_name='John',
+            last_name='Doe',
+            email='john.doe@example.com',
+            date_of_birth='2000-01-01'
+        )
+
+        self.certificate_info = CertificateInfo.objects.create(
+            certificate_holder=self.certificate_holder,
+            certificate_start_date='2023-01-01',
+            certificate_expiration_date='2024-01-01'
+        )
+
+        # URL for the delete_certificate view
+        self.delete_cert_url = reverse('delete-certificate', kwargs={'pk': self.certificate_info.certificate_number})
+        self.certificates_url = reverse('certificates')
+
+    def test_superuser_can_delete_certificate(self):
+        # Log in as superuser
+        self.client.login(username='admin', password='adminpassword')
+
+        # Send GET request to delete the certificate
+        response = self.client.get(self.delete_cert_url)
+
+        # Ensure the certificate is deleted from the database
+        with self.assertRaises(CertificateInfo.DoesNotExist):
+            CertificateInfo.objects.get(certificate_number=self.certificate_info.certificate_number)
+
+        # Verify success message and redirection
+        messages = list(get_messages(response.wsgi_request))
+        self.assertTrue(any(str(message) == 'Certificate deleted successfully' for message in messages))
+        self.assertRedirects(response, self.certificates_url)
+
+    def test_non_superuser_cannot_delete_certificate(self):
+        # Log in as non-superuser
+        self.client.login(username='testuser', password='testpassword')
+
+        # Send GET request to delete the certificate
+        response = self.client.get(self.delete_cert_url)
+
+        # Ensure no deletion occurs
+        self.assertEqual(CertificateInfo.objects.count(), 1)
+
+        # Check for the 'Admin login required' message
+        messages = list(get_messages(response.wsgi_request))
+        self.assertTrue(any(str(message) == 'Admin login required' for message in messages))
+
+        # Verify redirection to the certificates list
+        self.assertRedirects(response, self.certificates_url)
