@@ -15,6 +15,7 @@ An application to be used by NHSBSA employees to Create, Read, Update and Update
 **Mac**
 - setup a virtual environment: `python3 -m venv .venv`
 - start the virtual environment: `source .venv/bin/activate`
+- install requirements: `pip install -r requirements.txt`
 - install django: `pip install django`
 - run the web app: `python manage.py runserver`
 
