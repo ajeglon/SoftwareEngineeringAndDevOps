@@ -88,7 +88,11 @@ class CertificateInfo(models.Model):
         return str(self.certificate_number) + " - " + f'{self.certificate_holder}'
 
     def save(self, *args, **kwargs):
-        self.certificate_expiration_date = self.certificate_start_date + timedelta(days=365)
+        if isinstance(self.certificate_start_date, str):
+            self.certificate_start_date = datetime.strptime(self.certificate_start_date, "%Y-%m-%d").date()
+        if self.certificate_start_date:
+            self.certificate_expiration_date = self.certificate_start_date + timedelta(days=365)
+
         super().save(*args, **kwargs)
 
     def certClean(self):
@@ -98,5 +102,12 @@ class CertificateInfo(models.Model):
             raise ValidationError("Certificate number cannot be empty.")
         if not self.certificate_start_date:
             raise ValidationError("Certificate start date cannot be empty.")
+        if not self.certificate_start_date:
+            raise ValidationError({"certificate_start_date": "Certificate start date cannot be empty."})
+        if self.certificate_start_date and self.certificate_expiration_date:
+            if self.certificate_expiration_date <= self.certificate_start_date:
+                raise ValidationError({
+                    "certificate_expiration_date": "Expiration date must be after the start date."
+                })
         if not self.certificate_expiration_date:
             raise ValidationError("Certificate expiration date cannot be empty.")
