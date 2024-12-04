@@ -1,5 +1,8 @@
-from django.test import TestCase
+from django.contrib.auth.models import User
+from django.test import TestCase, Client
 from django.core.exceptions import ValidationError
+from django.urls import reverse
+
 from .models import CertificateHolder, CertificateInfo
 
 
@@ -160,7 +163,7 @@ class CertificateInfoTest(TestCase):
         except ValidationError:
             self.fail("Valid Certificate Start Date raised ValidationError")
 
-    # Test a valid Certificate start date
+    # Test a valid Certificate expiration date
     def test_certificate_expiration_date_valid(self):
         certHolder = CertificateHolder(nhs_number=1234567890, first_name="firstname", last_name="lastname", email="email@email.co.uk", date_of_birth="1990-01-01")
         certInfo = CertificateInfo(certificate_holder=certHolder, certificate_number="12345", certificate_start_date="2024-06-06", certificate_expiration_date="2025-06-06")
@@ -168,3 +171,46 @@ class CertificateInfoTest(TestCase):
             certInfo.certClean()
         except ValidationError:
             self.fail("Valid Certificate Expiration Date raised ValidationError")
+
+# Tests for user login
+
+class UserLoginTests(TestCase):
+    def setUp(self):
+        # Create a test client
+        self.client = Client()
+        # Create a test user
+        self.user = User.objects.create_user(username="testuser", password="testpassword")
+
+    def test_valid_user_login(self):
+        # Simulate a POST request with valid credentials
+        response = self.client.post(reverse('index'), {
+            'username': 'testuser',
+            'password': 'testpassword',
+        }, follow=True)
+
+        # Check if the user is successfully logged in
+        self.assertRedirects(response, reverse('index'))
+        self.assertIn('_auth_user_id', self.client.session)  # Check session for login
+        self.assertContains(response, "Succesfully logged in", html=False)
+
+    def test_invalid_user_login(self):
+        # Simulate a POST request with invalid credentials
+        response = self.client.post(reverse('index'), {
+            'username': 'testuser',
+            'password': 'wrongpassword',
+        }, follow=True)
+
+        # Check that the user is not logged in
+        self.assertNotIn('_auth_user_id', self.client.session)  # No login in session
+
+        # Check for the error message in the final response
+        self.assertContains(response, "There was an error login, please try again")
+
+    def test_get_request(self):
+        # Simulate a GET request
+        response = self.client.get(reverse('index'))
+
+        # Check that the page is rendered successfully
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'index.html')
+
