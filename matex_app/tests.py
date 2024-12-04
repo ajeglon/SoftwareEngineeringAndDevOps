@@ -3,14 +3,14 @@ from datetime import datetime, timedelta
 from django.contrib.auth.models import User
 from django.contrib.messages import get_messages
 from django.test import TestCase, Client
-from django.core.exceptions import ValidationError
+from django.core.exceptions import ValidationError, ObjectDoesNotExist
 from django.urls import reverse
 
 from .models import CertificateHolder, CertificateInfo
 
 
 # Tests for Certificate Holders
-class CertificateHolderTest(TestCase):
+class CertificateHolderTests(TestCase):
 
     def test_nhs_number_valid(self):
         # Test a valid NHS number
@@ -137,7 +137,7 @@ class CertificateHolderTest(TestCase):
             certHolder.certHolderClean()
 
 # Tests for Certificates
-class CertificateInfoTest(TestCase):
+class CertificateInfoTests(TestCase):
 
     def setUp(self):
         # Create a certificate holder
@@ -208,12 +208,9 @@ class CertificateInfoTest(TestCase):
         self.assertIn('certificate_holder', cm.exception.message_dict)
 
 # Tests for user login
-
 class UserLoginTests(TestCase):
     def setUp(self):
-        # Create a test client
         self.client = Client()
-        # Create a test user
         self.user = User.objects.create_user(username="testuser", password="testpassword")
 
     def test_valid_user_login(self):
@@ -249,68 +246,69 @@ class UserLoginTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'index.html')
 
-
-# Tests for viewing Certificate Holders
-class CertificateHoldersViewTest(TestCase):
+# Tests for viewing Holder-info
+class HolderInfoTests(TestCase):
     def setUp(self):
-        # Create a test client
         self.client = Client()
-
-        # Create a test user
         self.user = User.objects.create_user(username='testuser', password='testpassword')
 
-        # Create some certificate holders
-        CertificateHolder.objects.create(nhs_number=1000000001, first_name='John', last_name='Doe',
-                                         email='john.doe@example.com', date_of_birth='2000-01-01')
-        CertificateHolder.objects.create(nhs_number=1000000002, first_name='Jane', last_name='Smith',
-                                         email='jane.smith@example.com', date_of_birth='1995-05-15')
-
-        # URL for the view
-        self.url = reverse('certificate-holders')
-
-    def test_authenticated_user(self):
-        # Log in as the test user
-        self.client.login(username='testuser', password='testpassword')
-
-        # Send GET request to the view
-        response = self.client.get(self.url)
-
-        # Check response status code
-        self.assertEqual(response.status_code, 200)
-
-        # Verify that the template is correct
-        self.assertTemplateUsed(response, 'certificate-holders.html')
-
-        # Check that all certificate holders are in the context
-        cert_holders = response.context['cert_holders']
-        self.assertEqual(cert_holders.count(), 2)
-        self.assertQuerysetEqual(
-            cert_holders.order_by('nhs_number'),
-            CertificateHolder.objects.all().order_by('nhs_number'),
-            transform=lambda x: x
+        self.holder = CertificateHolder.objects.create(
+            nhs_number=1000000001,
+            first_name='John',
+            last_name='Doe',
+            email='john.doe@example.com',
+            date_of_birth='2000-01-01'
         )
 
-    def test_unauthenticated_user(self):
+        self.holder_info_url = reverse('holder-info', kwargs={'pk': self.holder.id})
+        self.index_url = reverse('index')
+
+    def test_authenticated_user_can_access_holder_info(self):
+        self.client.login(username='testuser', password='testpassword')
+
+        response = self.client.get(self.holder_info_url)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'holder-info.html')
+        self.assertEqual(response.context['holder_record'], self.holder)
+
+    def test_unauthenticated_user_redirected_to_index(self):
         # Send GET request without logging in
-        response = self.client.get(self.url)
+        response = self.client.get(self.holder_info_url)
 
-        # Check for redirection to the login page
-        self.assertRedirects(response, reverse('index'))
+        # Verify redirection to the index page
+        self.assertRedirects(response, self.index_url)
 
-        # Verify that the message is present
+        # Check for the correct message
         messages = list(get_messages(response.wsgi_request))
         self.assertTrue(any(str(message) == 'Please log in to view this page' for message in messages))
 
-# Tests for viewing Certificates
-class CertificatesViewTest(TestCase):
+    def test_holder_info_nonexistent_record(self):
+        self.client.login(username='testuser', password='testpassword')
+
+        # Send GET request for a non-existent record
+        non_existent_url = reverse('holder-info', kwargs={'pk': 9999})
+        with self.assertRaises(ObjectDoesNotExist):
+            self.client.get(non_existent_url)
+
+    def test_unauthenticated_user_nonexistent_record(self):
+        # Send GET request for a non-existent record without logging in
+        non_existent_url = reverse('holder-info', kwargs={'pk': 9999})
+        response = self.client.get(non_existent_url)
+
+        # Verify redirection to the index page
+        self.assertRedirects(response, self.index_url)
+
+        # Check for the correct message
+        messages = list(get_messages(response.wsgi_request))
+        self.assertTrue(any(str(message) == 'Please log in to view this page' for message in messages))
+
+# Tests for Deleting Holder-info
+class DeleteCertHolderTests(TestCase):
     def setUp(self):
-        # Create a test client
-        self.client = Client()
+        self.superuser = User.objects.create_user(username='admin', password='adminpassword', is_superuser=True)
+        self.regular_user = User.objects.create_user(username='user', password='userpassword')
 
-        # Create a test user
-        self.user = User.objects.create_user(username='testuser', password='testpassword')
-
-        # Create a certificate holder
         self.certificate_holder = CertificateHolder.objects.create(
             nhs_number=1000000001,
             first_name='John',
@@ -319,47 +317,82 @@ class CertificatesViewTest(TestCase):
             date_of_birth='2000-01-01'
         )
 
-        # Create some certificates
-        CertificateInfo.objects.create(
-            certificate_holder=self.certificate_holder,
-            certificate_start_date='2023-01-01',
-            certificate_expiration_date='2024-01-01'
-        )
-        CertificateInfo.objects.create(
-            certificate_holder=self.certificate_holder,
-            certificate_start_date='2022-01-01',
-            certificate_expiration_date='2023-01-01'
+        # URLs
+        self.delete_cert_holder_url = reverse('delete-holder-info', kwargs={'pk': self.certificate_holder.pk})
+        self.certificate_holders_url = reverse('certificate-holders')
+
+    def test_superuser_can_delete_certificate_holder(self):
+        # Log in as the superuser
+        self.client.login(username='admin', password='adminpassword')
+
+        # Send DELETE request to the delete_cert_holder view
+        response = self.client.get(self.delete_cert_holder_url)
+
+        # Check if the certificate holder is deleted
+        with self.assertRaises(CertificateHolder.DoesNotExist):
+            CertificateHolder.objects.get(id=self.certificate_holder.id)
+
+        # Check for the success message
+        messages = list(get_messages(response.wsgi_request))
+        self.assertTrue(any(str(message) == 'Certificate holder deleted successfully' for message in messages))
+
+        # Verify redirection to the list of certificate holders
+        self.assertRedirects(response, self.certificate_holders_url)
+
+    def test_regular_user_cannot_delete_certificate_holder(self):
+        # Log in as a regular user
+        self.client.login(username='user', password='userpassword')
+
+        # Try to send a DELETE request to the delete_cert_holder view
+        response = self.client.get(self.delete_cert_holder_url)
+
+        # Check that the certificate holder is still in the database
+        CertificateHolder.objects.get(id=self.certificate_holder.id)
+
+        # Check for the 'Admin login required' message
+        messages = list(get_messages(response.wsgi_request))
+        self.assertTrue(any(str(message) == 'Admin login required' for message in messages))
+
+        # Verify redirection to the list of certificate holders
+        self.assertRedirects(response, self.certificate_holders_url)
+
+# Tests for updating Certificate Holders
+class UpdateCertHolderTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username='testuser', password='testpassword')
+
+        self.certificate_holder = CertificateHolder.objects.create(
+            nhs_number=1000000001,
+            first_name='John',
+            last_name='Doe',
+            email='john.doe@example.com',
+            date_of_birth='2000-01-01'
         )
 
-        # URL for the view
-        self.url = reverse('certificates')
+        self.update_cert_holder_url = reverse('update-holder-info', kwargs={'pk': self.certificate_holder.id})
+        self.certificate_holders_url = reverse('certificate-holders')
 
-    def test_authenticated_user(self):
-        # Log in as the test user
+    def test_invalid_form_submission(self):
+        # Log in the user
         self.client.login(username='testuser', password='testpassword')
 
-        # Send GET request to the view
-        response = self.client.get(self.url)
+        # Send GET request to get the form
+        response = self.client.get(self.update_cert_holder_url)
 
-        # Check response status code
-        self.assertEqual(response.status_code, 200)
+        # Prepare invalid data (e.g., empty first name)
+        invalid_data = {
+            'first_name': '',
+            'last_name': 'Smith',
+            'email': 'jane.smith@example.com',
+            'date_of_birth': '1995-05-05',
+        }
 
-        # Verify that the template is correct
-        self.assertTemplateUsed(response, 'certificates.html')
+        # Send POST request with invalid data
+        response = self.client.post(self.update_cert_holder_url, invalid_data)
 
-        # Check that all certificates are in the context
-        certs = response.context['certs']
-        self.assertEqual(certs.count(), 2)
-        self.assertQuerysetEqual(
-            certs.order_by('certificate_start_date'),
-            CertificateInfo.objects.all().order_by('certificate_start_date'),
-            transform=lambda x: x
-        )
+        # Check that the form is re-rendered with errors
+        self.assertFormError(response, 'form', 'first_name', 'This field is required.')
 
-    def test_unauthenticated_user(self):
-        response = self.client.get(self.url)
-        self.assertRedirects(response, reverse('index'))
-
-        # Verify that the message is present
-        messages = list(get_messages(response.wsgi_request))
-        self.assertTrue(any(str(message) == 'Please log in to view this page' for message in messages))
+        # Check if the certificate holder's data is unchanged
+        self.certificate_holder.refresh_from_db()
+        self.assertEqual(self.certificate_holder.first_name, 'John')
