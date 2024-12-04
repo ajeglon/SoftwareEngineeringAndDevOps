@@ -44,7 +44,7 @@ class CertificateHolder(models.Model):
     def __str__(self):
         return str(self.nhs_number) + " - " + f'{self.first_name} {self.last_name}'
 
-    def clean(self):
+    def certHolderClean(self):
         if not self.nhs_number:
             raise ValidationError("NHS number cannot be empty.")
         if not (1000000000 <= int(self.nhs_number) <= 9999999999):
@@ -90,3 +90,13 @@ class CertificateInfo(models.Model):
     def save(self, *args, **kwargs):
         self.certificate_expiration_date = self.certificate_start_date + timedelta(days=365)
         super().save(*args, **kwargs)
+
+    def certClean(self):
+        if not self.certificate_holder:
+            raise ValidationError("Certificate holder cannot be empty.")
+        if not self.certificate_number:
+            raise ValidationError("Certificate number cannot be empty.")
+        if not self.certificate_start_date:
+            raise ValidationError("Certificate start date cannot be empty.")
+        if not self.certificate_expiration_date:
+            raise ValidationError("Certificate expiration date cannot be empty.")
