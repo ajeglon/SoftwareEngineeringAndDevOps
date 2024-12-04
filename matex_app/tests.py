@@ -1,6 +1,6 @@
 from django.test import TestCase
 from django.core.exceptions import ValidationError
-from .models import CertificateHolder
+from .models import CertificateHolder, CertificateInfo
 
 
 # Tests for Certificate Holders
@@ -131,3 +131,40 @@ class CertificateHolderTest(TestCase):
             certHolder.certHolderClean()
 
 # Tests for Certificates
+class CertificateInfoTest(TestCase):
+
+    # Test a valid Certificate holder
+    def test_certificate_holder_valid(self):
+        certHolder = CertificateHolder(nhs_number=1234567890, first_name="firstname", last_name="lastname", email="email@email.co.uk", date_of_birth="1990-01-01")
+        certInfo = CertificateInfo(certificate_holder=certHolder, certificate_number="12345", certificate_start_date="2024-11-11",  certificate_expiration_date="2025-11-11")
+        try:
+            certInfo.certClean()
+        except ValidationError:
+            self.fail("Valid Certificate Holder raised ValidationError")
+
+    # Test a valid Certificate number
+    def test_certificate_number_valid(self):
+        certHolder = CertificateHolder(nhs_number=1234567890, first_name="firstname", last_name="lastname", email="email@email.co.uk", date_of_birth="1990-01-01")
+        certInfo = CertificateInfo(certificate_holder=certHolder, certificate_number="11",  certificate_start_date="2024-11-11", certificate_expiration_date="2025-11-11")
+        try:
+            certInfo.certClean()
+        except ValidationError:
+            self.fail("Valid Certificate Number raised ValidationError")
+
+    # Test a valid Certificate start date
+    def test_certificate_start_date_valid(self):
+        certHolder = CertificateHolder(nhs_number=1234567890, first_name="firstname", last_name="lastname", email="email@email.co.uk", date_of_birth="1990-01-01")
+        certInfo = CertificateInfo(certificate_holder=certHolder, certificate_number="12345", certificate_start_date="2024-06-06", certificate_expiration_date="2025-11-11")
+        try:
+            certInfo.certClean()
+        except ValidationError:
+            self.fail("Valid Certificate Start Date raised ValidationError")
+
+    # Test a valid Certificate start date
+    def test_certificate_expiration_date_valid(self):
+        certHolder = CertificateHolder(nhs_number=1234567890, first_name="firstname", last_name="lastname", email="email@email.co.uk", date_of_birth="1990-01-01")
+        certInfo = CertificateInfo(certificate_holder=certHolder, certificate_number="12345", certificate_start_date="2024-06-06", certificate_expiration_date="2025-06-06")
+        try:
+            certInfo.certClean()
+        except ValidationError:
+            self.fail("Valid Certificate Expiration Date raised ValidationError")
