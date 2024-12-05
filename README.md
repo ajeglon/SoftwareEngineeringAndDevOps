@@ -15,9 +15,10 @@ An application to be used by NHSBSA employees to Create, Read, Update and Update
 **Mac**
 - setup a virtual environment: `python3 -m venv .venv`
 - start the virtual environment: `source .venv/bin/activate`
-- install requirements: `pip install -r requirements.txt`
 - install django: `pip install django`
+- install requirements: `pip install -r requirements.txt`
 - run the web app: `python manage.py runserver`
+- run pytests: `pytest`
 
 **Windows**
 - create the virtual environment: `py -3 -m venv .venv`
@@ -25,6 +26,7 @@ An application to be used by NHSBSA employees to Create, Read, Update and Update
 - install django: `pip install django`
 - install dependencies: `pip install -r requirements.txt`
 - run the web app: `python3 manage.py runserver`
+- - run pytests: `pytest`
 
 **Resources**
 - [VSCode Guide to Django](https://code.visualstudio.com/docs/python/tutorial-django)
