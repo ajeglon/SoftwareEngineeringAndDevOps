@@ -1,3 +1,5 @@
 Django
 Gunicorn
 whitenoise
+pytest
+pytest-django
