@@ -3,4 +3,4 @@ Gunicorn
 whitenoise
 pytest
 pytest-django
-django-dotenv
+python-dotenv
