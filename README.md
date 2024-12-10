@@ -21,12 +21,13 @@ An application to be used by NHSBSA employees to Create, Read, Update and Update
 - run pytests: `pytest`
 
 **Windows**
-- create the virtual environment: `py -3 -m venv .venv`
-- start the virtual environment: `.venv\bin\activate`
+- install virtual environment: `pip install virtualenv`
+- create the virtual environment: `virtualenv .venv`
+- start the virtual environment: `.venv\scripts\activate`
 - install django: `pip install django`
 - install dependencies: `pip install -r requirements.txt`
-- run the web app: `python3 manage.py runserver`
-- - run pytests: `pytest`
+- run the web app: `python manage.py runserver`
+- run pytests: `pytest`
 
 **Resources**
 - [VSCode Guide to Django](https://code.visualstudio.com/docs/python/tutorial-django)
