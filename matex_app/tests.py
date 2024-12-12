@@ -14,7 +14,7 @@ class CertificateHolderTests(TestCase):
 
     def test_nhs_number_valid(self):
         # Test a valid NHS number
-        certHolder = CertificateHolder(nhs_number='a', first_name="firstname", last_name="lastname", email="email@email.co.uk", date_of_birth="1990-01-01")
+        certHolder = CertificateHolder(nhs_number=1234567890, first_name="firstname", last_name="lastname", email="email@email.co.uk", date_of_birth="1990-01-01")
         try:
             certHolder.certHolderClean()
         except ValidationError:
