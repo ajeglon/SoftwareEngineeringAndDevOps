@@ -43,4 +43,4 @@ jobs:
           -H "Authorization: Bearer $RENDER_API_KEY" \
           -H "Content-Type: application/json" \
           -d '{}' \
-          https://api.render.com/v1/services/matexapplication/deploys
+          https://api.render.com/v1/services/srv-csj1pftsvqrc73eluutg/deploys
