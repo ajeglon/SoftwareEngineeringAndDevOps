@@ -29,3 +29,19 @@ jobs:
     - name: Run Tests
       run: |
         pytest
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Deploy to Render
+      env:
+        RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+      run: |
+        # Replace with your Render service ID and API endpoint
+        curl -X POST \
+          -H "Authorization: Bearer $RENDER_API_KEY" \
+          -H "Content-Type: application/json" \
+          -d '{}' \
+          https://api.render.com/v1/services/matexapplication/deploys
